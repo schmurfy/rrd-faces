@@ -1,0 +1,29 @@
+%div#nav
+  %div#hosts.nav
+    %h2 Hosts
+    %ul
+      - @hosts.each do |host|
+        %li
+          %a{:href => "/#{host}"}= host
+
+%div#graphs
+  - if @graphs
+    - @graphs.each.with_index do |g, n|
+      .graph{:style => 'width: 1100px'}
+        %h2= g.label
+        %select.interval
+          %option{:value => 60*60 }= "1 hour"
+          %option{:value => 24*60*60 }= "24 hours"
+          %option{:value => 7*24*60*60 }= "1 week"
+        .legend
+        .canvas{:id => "graph_#{n}", :style => 'height: 400px; width: 1000px;'}
+        :javascript
+          $('#graph_#{n}').parent('.graph').data({
+            host: '#{params[:host]}',
+            name: '#{g.short_name}'
+          });
+        
+  - else
+    %div#nothing
+      Sorry, nothing to display!
+  

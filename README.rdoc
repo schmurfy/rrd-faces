@@ -1,0 +1,49 @@
+= RRD-Faces
+== Why ?
+I recently had to build a monitoring system including:
+* Physical machine monitoring (cpu, memory, etc...)
+* Virtual machines monitoring (cpu, memory, etc...)
+* Ruby application servers (not only web application but also daemons which have to send counters)
+
+I came accross collectd which is quite an awesome piece of software and configured it to dump rrds from 
+all those data, first part done.
+
+Now with with some rrd on disk I thought it would be a rather easy task to find an application which just
+draw the graph from them, looks like I was wrong...
+Most of the solutions I found out there want full control over the chain (they handle collection and drawing not one without the other),
+there is also mrtg which can with some hacking draw graph from data not network related but the graphs are just horrible and
+the frontend of those application takes more cpu/memory than any of the monitored application we have, really amazing if you ask me.
+
+In the end I just came on Visage (http://github.com/auxesis/visage/) which is a great base, the idea is dead simple: read the rrd
+and send them to the client where the graph will be drawn. I really like the idea of making the browser do some of the work instead of
+just waiting for a picture to be generated.
+
+I took inspiration from visage but since there was things I did not like at all with this application I finally rewrote parts
+of it and eventually ended with something without much common code lines so I simply changed its name.
+
+== Future
+My plans for it are reaaly simple: being able to graph data from any rrd.
+Some work may be done on how data are display
+I have no plan for supporting anything other than rrd and i wish to keep it as lightweight as possible.
+
+== How?
+* Sinatra : used as a backend to serve clients
+* Errand (http://github.com/auxesis/rubyrrdtool) : read data from rrd files with a better api than the other wrappers out there
+* jquery : I really love this javascript library
+* flot (http://github.com/thenduks/flot) : draw the graph client side
+  * it supports non contiguous dataset (if your set has null values in it the line will just be cut where null values are)
+  * it can generates many graph format (bars, lines, points)
+  * it is based on jquery and so does not rebuild all the required browser abstraction
+  * use excanvas for the evil ie (I don't care much about it but since some people are really using it... it may work or not)
+  
+== Quick Install
+The simplest way to be up and running is by using thin, you have to edit config/config.yml to point to your rrd folder
+* gem install bundler --no-rdoc --no-ri
+* gem bundle
+* gem install thin --no-rdoc --no-ri
+* thin -R config.ru start -d (the -d flag is used to run in it background)
+
+
+
+
+
