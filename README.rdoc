@@ -22,9 +22,8 @@ I took inspiration from visage but since there was things I did not like at all 
 of it and eventually ended with something without much common code lines so I simply changed its name.
 
 == Future
-My plans for it are reaaly simple: being able to graph data from any rrd.
-Some work may be done on how data are display
-I have no plan for supporting anything other than rrd and i wish to keep it as lightweight as possible.
+My plans for it are really simple: being able to graph data from any rrd.
+Some work may be done on how data are display but I have no plan for supporting anything other than rrd and i wish to keep it as lightweight as possible.
 
 == How?
 * Sinatra : used as a backend to serve clients
@@ -38,9 +37,8 @@ I have no plan for supporting anything other than rrd and i wish to keep it as l
   
 == Quick Install
 The simplest way to be up and running is by using thin, you have to edit config/config.yml to point to your rrd folder
-* gem install bundler --no-rdoc --no-ri
+* gem install bundler thin --no-rdoc --no-ri
 * gem bundle
-* gem install thin --no-rdoc --no-ri
 * thin -R config.ru start -d (the -d flag is used to run in it background)
 
 
