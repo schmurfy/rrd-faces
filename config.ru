@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
 
-require 'visage'
+require 'main'
 run Sinatra::Application
 
