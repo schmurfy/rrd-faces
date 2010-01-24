@@ -22,7 +22,9 @@ end
 
 
 GraphDrawer::define_views do |v|
+  # common to all hosts
   v.set_default(memory)
+  # host specific (mac is the hostname here)
   v.add_machine(:mac, net('en0'), disk('14-0'))
 end
 
