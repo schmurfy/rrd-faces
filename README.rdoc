@@ -41,7 +41,7 @@ The simplest way to be up and running is by using thin, you have to edit config/
 * gem bundle
 * thin -R config.ru start -d (the -d flag is used to run in it background)
 
-
+(tested only on ruby 1.9)
 
 
 
