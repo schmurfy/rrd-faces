@@ -54,7 +54,7 @@ get '/data/:host/:view' do
   interval = params[:interval].to_i
   
   graph = GraphDrawer::view.default[view] || GraphDrawer::view.machines[host][view]
-  Yajl::Encoder.new.encode(graph.to_hash(interval))
+  Yajl::Encoder.new.encode(graph.to_hash(host, interval))
 end
 
 

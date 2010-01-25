@@ -56,12 +56,12 @@ module GraphDrawer
       @@encoder.encode(self.to_hash)
     end
     
-    def to_hash(interval = nil)
+    def to_hash(machine, interval = nil)
       from ||= (Time.now - (interval || 3600)).to_i
       to   ||= (Time.now).to_i
        
       {
-        :data => @series.map{|s| s.to_hash(from, to) },
+        :data => @series.map{|s| s.to_hash(machine, from, to) },
         :options => @global_options
       }
     end
@@ -91,7 +91,7 @@ module GraphDrawer
         end
       end
     
-      def to_hash(from = nil, to = nil)
+      def to_hash(machine, from = nil, to = nil)
       
         graph_properties = {"show" => true}
         (instance_variables - (@@ignored_properties + @@global_properties)).each do |property_name|
@@ -114,7 +114,7 @@ module GraphDrawer
 
         data = []
 
-        rrd = Errand.new(:filename => File.join(GraphDrawer::rrd_base_folder, 'mac', self.rrd_path))
+        rrd = Errand.new(:filename => File.join(GraphDrawer::rrd_base_folder, machine, self.rrd_path))
         rrd_data = rrd.fetch(:function => 'AVERAGE', :start => from, :end => to)
         
         if rrd_data[:data].has_key?(ds_name)
