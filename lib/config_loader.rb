@@ -38,7 +38,7 @@ module GraphDrawer
   MS_PING = {
       :xaxis => { :mode => 'time'},
       :yaxis => { :ticks => [[0, "0"]] +
-          (25..300).step(25){|n| [n, "#{n} ms"] }
+          (25..300).step(25).map{|n| [n, "#{n} ms"] }
         }
     }
   
