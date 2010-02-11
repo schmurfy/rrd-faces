@@ -35,6 +35,17 @@ module GraphDrawer
         }
     }
   
+  MS_PING = {
+      :xaxis => { :mode => 'time'},
+      :yaxis => { :ticks => [[0, "0"]] +
+          (25..300).step(25){|n| [n, "#{n} ms"] }
+        }
+    }
+  
+  SIMPLE_TIME_BASED = {
+      :xaxis => { :mode => 'time'}
+    }
+  
   class Graph
     attr_reader :label, :short_name
     
