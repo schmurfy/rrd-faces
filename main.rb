@@ -9,14 +9,14 @@ require 'sinatra'
 
 Bundler::require_env()
 
-require 'lib/config_loader'
-require 'config/config'
+require File.join(__DIR__, 'lib/config_loader')
+require File.join(__DIR__, 'config/config')
 
 set :public, __DIR__ + '/public'
 set :views,  __DIR__ + '/views'
 
 template :layout do 
-  File.read('views/layout.haml')
+  File.read(File.join(__DIR__, 'views/layout.haml'))
 end
 
 # infrastructure for embedding
