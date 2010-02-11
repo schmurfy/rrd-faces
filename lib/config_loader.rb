@@ -184,6 +184,8 @@ module GraphDrawer
       end
 
       def add_machine(name, *list)
+        list = Array(list.first) if list.size == 1
+        
         @machines[name] = {}
         list.each do |g|
           @machines[name.to_sym][g.short_name.to_sym] = g
