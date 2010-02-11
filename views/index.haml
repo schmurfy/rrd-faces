@@ -15,6 +15,7 @@
           %option{:value => 60*60 }= "1 hour"
           %option{:value => 24*60*60 }= "24 hours"
           %option{:value => 7*24*60*60 }= "1 week"
+        %input.live_update{:type => 'checkbox'}
         .legend
         .canvas{:id => "graph_#{n}", :style => 'height: 400px; width: 1000px;'}
         :javascript

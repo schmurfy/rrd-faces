@@ -26,6 +26,17 @@ $(document).ready(function(){
     var interval = $(el).find('select').val();
     showGraph($(el).find('.canvas'), '/data/' + $(el).data('host') + '/' + $(el).data('name'), {interval: interval});
   });
+  
+  $('.graph .live_update').click(function(){
+    if( $(this).val() ){
+      var s = $(this).closest('.graph').find('select');
+      
+      setInterval(
+          function(){ s.trigger('change'); },
+          10000
+        );
+    }
+  });
 });
 
 
