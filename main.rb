@@ -1,13 +1,21 @@
 #!/usr/bin/env ruby
 
 __DIR__ = File.expand_path(File.dirname(__FILE__))
-require File.join(__DIR__, 'gems/environment')
+
+begin
+  # Require the preresolved locked set of gems.
+  require File.expand_path('../.bundle/environment', __FILE__)
+rescue LoadError
+  # Fallback on doing the resolve at runtime.
+  require "bundler"
+  Bundler.setup
+end
 
 # sinatra have to be required there or else
 # "ruby visage.rb" does not work to run the app
 require 'sinatra'
 
-Bundler::require_env()
+Bundler.require
 
 require File.join(__DIR__, 'lib/config_loader')
 require File.join(__DIR__, 'config/config')

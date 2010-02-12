@@ -10,11 +10,20 @@
 # alerts will be logged in file and emails will be sent
 # to each configured recipients
 #
+
+begin
+  # Require the preresolved locked set of gems.
+  require File.expand_path('../.bundle/environment', __FILE__)
+rescue LoadError
+  # Fallback on doing the resolve at runtime.
+  require "bundler"
+  Bundler.setup
+end
+
+Bundler.require
+
 require 'logger'
 require 'yaml'
-
-require File.join(File.dirname(__FILE__), 'gems/environment')
-Bundler.require_env()
 
 
 module Config
