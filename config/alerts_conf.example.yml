@@ -1,0 +1,13 @@
+
+timezone: Europe/Paris
+
+logger:
+  path: /tmp/alerts.log
+
+emails:
+  host: localhost
+  from: no-reply@somewhere.com
+  recipients:
+    - someone@somewhere.com
+
+
