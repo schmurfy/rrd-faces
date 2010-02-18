@@ -4,7 +4,7 @@ __DIR__ = File.expand_path(File.dirname(__FILE__))
 
 begin
   # Require the preresolved locked set of gems.
-  require File.expand_path('../.bundle/environment', __FILE__)
+  require File.expand_path('.bundle/environment', __DIR__)
 rescue LoadError
   # Fallback on doing the resolve at runtime.
   require "bundler"
