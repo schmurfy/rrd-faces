@@ -9,3 +9,6 @@ gem 'haml',         '>= 2.2.17'
 gem 'tzinfo'
 gem 'mmmail'
 
+group(:notifications) do
+  gem 'eventmachine'
+end

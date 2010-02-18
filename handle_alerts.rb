@@ -20,7 +20,7 @@ rescue LoadError
   Bundler.setup
 end
 
-Bundler.require
+Bundler.require(:default, :notifications)
 
 require 'logger'
 require 'yaml'
@@ -46,15 +46,16 @@ module Config
   def self.smtp_host
     @smtp_host ||= _data['emails']['host'].value
   end
+  
+  
+  
+  def self.logger
+    log_file = Config._data['logger']['path'].value
+    @logger ||= Logger.new( STDOUT )
+  end
 end
 
-log_file = Config._data['logger']['path'].value
-logger = Logger.new( log_file )
-
 MmMail::Transport::DefaultConfig.host = Config::smtp_host
-
-collectd_interval = ENV['COLLECTD_INTERVAL']
-collectd_hostname = ENV['COLLECTD_HOSTNAME']
 
 def send_email(subject, body)
   Config::email_recipients.each do |recipient|
@@ -88,41 +89,48 @@ class Notification
   end
 end
 
-class NotificatioParser
-  REGEXP = %r{\
+module NotificationHandler
+  
+  REGEXP = %r{^\
 Severity: (?<severity>[^\n]+)\n\
 Time: (?<time>[0-9]+)\n\
-Host: (?<host>[^\n]+)\n\
-Plugin: (?<plugin>[^\n]+)\n\
-Type: (?<type>[^\n]+)\n\
-TypeInstance: (?<type_instance>[^\n]+)\n\
-DataSource: (?<datasource>[^\n]+)\n\
-CurrentValue: (?<value>[^\n]+)\n\
-WarningMin: (?<warn_min>[^\n]+)\n\
-WarningMax: (?<warn_max>[^\n]+)\n\
-FailureMin: (?<failure_min>[^\n]+)\n\
-FailureMax: (?<failure_max>[^\n]+)\n\
-\n\
-(?:(?<message>[^\n]+)\n)?\
-}
+(?:Host: (?<host>[^\n]+)\n)?\
+(?:Plugin: (?<plugin>[^\n]+)\n)?\
+(?:PluginInstance: (?<plugin_instance>[^\n]+)\n)?\
+(?:Type: (?<type>[^\n]+)\n)?\
+(?:TypeInstance: (?<type_instance>[^\n]+)\n)?\
+(?:DataSource: (?<datasource>[^\n]+)\n)?\
+(?:CurrentValue: (?<value>[^\n]+)\n)?\
+(?:WarningMin: (?<warn_min>[^\n]+)\n)?\
+(?:WarningMax: (?<warn_max>[^\n]+)\n)?\
+(?:FailureMin: (?<failure_min>[^\n]+)\n)?\
+(?:FailureMax: (?<failure_max>[^\n]+)\n)?\
+\n+\
+(?:(?<message>[^\n]+)\n)?$}
   
-  def self.parse(str)
+  def parse(str)
     m = REGEXP.match(str)
     m ? Notification.new(m) : nil
   end
   
+  def receive_data(data)
+    puts "DATA: #{data}"
+    if ev = parse(data)
+      Config::logger.debug("[#{ev.time.strftime('%H:%m:%S')} - #{ev.host}] #{ev.severity} ")
+      send_email("#{ev.host} - #{ev.plugin}:#{ev.type}:#{ev.type_instance} - #{ev.severity}", %{\
+        Current Value: #{ev.value}
+        Warning thresholds: #{ev.warn_min} - #{ev.warn_max}
+        Failure thresholds: #{ev.failure_min} - #{ev.failure_max}
+      })
+    end
+  end
+  
 end
 
-while data = $stdin.readpartial(4096)
-  File.open('/tmp/notification', 'w'){|f| f.write(data) }
-  
-  if ev = NotificatioParser.parse(data)
-    logger.debug("[#{ev.time.strftime('%H:%m:%S')} - #{ev.host}] #{ev.severity} ")
-    send_email("#{ev.host} - #{ev.plugin}:#{ev.type}:#{ev.type_instance} - #{ev.severity}", %{\
-      Current Value: #{ev.value}
-      Warning thresholds: #{ev.warn_min} - #{ev.warn_max}
-      Failure thresholds: #{ev.failure_min} - #{ev.failure_max}
-    })
-  end
+# EM::kqueue = true
+
+EM::run do  
+  EM::open_datagram_socket('127.0.0.1', 6000, NotificationHandler)
 end
+
 
