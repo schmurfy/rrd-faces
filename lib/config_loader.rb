@@ -9,58 +9,31 @@ module GraphDrawer
     @@rrd_base_folder
   end
   
-  # graph types
-  KB_VALUE = {
-      :xaxis => { :mode => "time" },
-      :yaxis => { :ticks => [[0, "0"]] +
-          (100..900).step(100).map{|s| [s*1024**2, "#{s}&nbsp;Mo"] } +
-          (1..100).map{|s| [s*1024**3, "#{s}&nbsp;Go"]}
-        }
-    }
-  
-  DISK_ACCESS = {
-      :legend => {:margin => -10},
-      :xaxis => { :mode => 'time'},
-      :yaxis => { :ticks => [[0, "0"]] + 
-          (1..10).map{|s| [s*1025*1024, "#{s} Mo/s"] }
-        }
-    }
-  
-  KB_SPEED = {
-      :xaxis => { :mode => 'time'},
-      :yaxis => { :ticks => [[0, "0"]] + 
-          (1..9).map{|s| [s*1024, "#{s} Ko/s"] } +
-          (10..100).step(10).map{|s| [s*1024, "#{s} Ko/s"] } +
-          (1..10).map{|s| [s*1025*1024, "#{s} Mo/s"] }
-        }
-    }
-  
-  MS_PING = {
-      :xaxis => { :mode => 'time'},
-      :yaxis => { :ticks => [[0, "0"]] +
-          (25..300).step(25).map{|n| [n, "#{n} ms"] }
-        }
-    }
-  
-  SIMPLE_TIME_BASED = {
-      :xaxis => { :mode => 'time'}
-    }
-  
   class Graph
-    attr_reader :label, :short_name
+    attr_reader :label, :short_name, :axis_type
     
     @@encoder = Yajl::Encoder.new
     
-    def initialize(short_name, description, options = {})
+    def initialize(short_name, description, axis_type, options = {})
       @global_options = options
       @label = description
       @short_name = short_name
+      @axis_type = axis_type
       @series = []
     end
   
     def draw_line(rrd_path, ds_name, options = {})
       options.merge!({:rrd_path => rrd_path, :ds_name => ds_name})
-      @series << LineGraphSerie.new(options)
+      serie = LineGraphSerie.new(options, options.delete(:base))
+      @series << serie
+      serie
+    end
+    
+    def draw_bar(rrd_path, ds_name, options = {})
+      options.merge!({:rrd_path => rrd_path, :ds_name => ds_name})
+      serie = BarGraphSerie.new(options, options.delete(:base))
+      @series << serie
+      serie
     end
   
     def to_js
@@ -73,7 +46,8 @@ module GraphDrawer
        
       {
         :data => @series.map{|s| s.to_hash(machine, from, to) },
-        :options => @global_options
+        :options => @global_options,
+        :type => @axis_type
       }
     end
 
@@ -83,7 +57,8 @@ module GraphDrawer
       @@ignored_properties = [:'@rrd_path', :'@ds_name']
       attr_accessor :color, :label, :rrd_path, :ds_name
     
-      def initialize(attributes)
+      def initialize(attributes, base = nil)
+        @base = base
         _load_data(attributes)
       end
     
@@ -124,6 +99,14 @@ module GraphDrawer
         js_end = 1000 * to
 
         data = []
+        
+        # load base data if any given
+        if @base
+          rrd_base = Errand.new(:filename => File.join(GraphDrawer::rrd_base_folder, machine, @base[0]))
+          rrd_base_data = rrd_base.fetch(:function => 'AVERAGE', :start => from, :end => to)[:data][@base[1]]
+        else
+          rrd_base_data = proc{ nil }
+        end
 
         rrd = Errand.new(:filename => File.join(GraphDrawer::rrd_base_folder, machine, self.rrd_path))
         rrd_data = rrd.fetch(:function => 'AVERAGE', :start => from, :end => to)
@@ -132,7 +115,9 @@ module GraphDrawer
           points = rrd_data[:data][ds_name]
           
           increment = (js_end - js_start) / points.size
-          global_properties[:data] = points.map.with_index{|y, n| [js_start + increment*n, y] }
+          global_properties[:data] = points.map.with_index do |y, n|
+            { :x => js_start + increment*n, :y => y, :base => rrd_base_data[n] }
+          end
         
         else
           raise "DS: #{ds_name} not found in #{self.rrd_path}"
@@ -153,7 +138,9 @@ module GraphDrawer
     end
 
 
-    class BarsGraphSerie < GraphSerie
+    class BarGraphSerie < GraphSerie
+      attr_accessor :barWidth, :fillOpacity, :borderOpacity
+      
       def type
         'bars'
       end
@@ -162,10 +149,10 @@ module GraphDrawer
   end
 
 
-  def self.define_graph(short_name, description, opts = {})
+  def self.define_graph(short_name, description, type = :default, opts = {})
     raise "block required" unless block_given?
   
-    g = Graph.new(short_name, description, opts)
+    g = Graph.new(short_name, description, type, opts)
     yield(g)
     g
   end
