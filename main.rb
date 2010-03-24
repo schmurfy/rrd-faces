@@ -11,10 +11,6 @@ rescue LoadError
   Bundler.setup
 end
 
-# sinatra have to be required there or else
-# "ruby visage.rb" does not work to run the app
-require 'sinatra'
-
 Bundler.require
 
 require File.join(__DIR__, 'lib/config_loader')
@@ -35,6 +31,15 @@ end
 get '/' do 
   @hosts = GraphDrawer::view.machines.keys
   haml :index
+end
+
+get '/*' do
+  # check if a template exist
+  template_path = File.join(__DIR__, '/views', "#{params[:splat][0]}.haml")
+  puts "PATH: #{template_path}"
+  pass unless File.exist?(template_path)
+  
+  haml "#{params[:splat][0]}".to_sym
 end
 
 get '/:host' do 
