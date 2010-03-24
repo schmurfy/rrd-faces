@@ -187,7 +187,7 @@ module GraphDrawer
         
         @machines[name] = {}
         list.each do |g|
-          @machines[name.to_sym][g.short_name.to_sym] = g
+          @machines[name][g.short_name.to_sym] = g
         end
       end
     end

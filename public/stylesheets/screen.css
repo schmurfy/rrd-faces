@@ -61,8 +61,10 @@ div#graphs {
 }
 
 div.graph {
-  margin: 0.5em 0;
-  clear: both;
+/*  margin: 0.5em 0;*/
+  margin: 20px;
+  float: left;
+/*  clear: both;*/
 }
 
 div.legend {
