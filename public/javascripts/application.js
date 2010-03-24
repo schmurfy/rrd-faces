@@ -1,5 +1,28 @@
 
-function typeSpecificOptions(data, opts){
+var previousPoint = null;
+
+function tooltip(event, pos, item, formatter) {
+      if (item) {
+          if( !previousPoint || (
+                (previousPoint[0] != item.datapoint[0]) && (previousPoint[1] != item.datapoint[1])
+            )){
+              previousPoint = item.datapoint;
+
+              $("#tooltip").remove();
+              var y = item.datapoint[1];
+
+              showTooltip(item.pageX, item.pageY, formatter(y));
+          }
+      }
+      else {
+          $("#tooltip").remove();
+          previousPoint = null;            
+      }
+}
+
+
+
+function typeSpecificOptions(data, opts, container){
   
   // find max y
   var tmp, ydata = [];
@@ -14,8 +37,7 @@ function typeSpecificOptions(data, opts){
   
   switch(data['type']){
     case 'speed':
-      opts['hints'] = opts['hints'] || { show : true };
-      opts['hints']['hintFormatter'] = function( datapoint ){ return format_speed(datapoint['y']); }
+      container.bind("plothover", function (event, pos, item) { tooltip(event, pos, item, format_speed); });
       opts['yaxis'] = {
           ticks : 5,
           tickFormatter : function(v, axis){ console.log(axis); return format_speed( find_nearest_speed(v)); }
@@ -23,8 +45,7 @@ function typeSpecificOptions(data, opts){
       break;
     
     case 'size':
-      opts['hints'] = opts['hints'] || { show : true };
-      opts['hints']['hintFormatter'] = function( datapoint ){ return format_size(datapoint['y']); }
+      container.bind("plothover", function (event, pos, item) { tooltip(event, pos, item, format_size); });
       opts['yaxis'] = {
           ticks : 5,
           tickFormatter : function(v, axis){ console.log(axis); return format_size( find_nearest_size(v) ); }
@@ -33,6 +54,40 @@ function typeSpecificOptions(data, opts){
   }
   
   return opts;
+}
+
+
+function showTooltip(x, y, contents) {
+    $('<div id="tooltip">' + contents + '</div>').css( {
+        position: 'absolute',
+        display: 'none',
+        top: y - 5,
+        left: x + 15,
+        border: '1px solid #fdd',
+        padding: '2px',
+        'background-color': '#fee',
+        opacity: 0.80
+    }).appendTo("body").fadeIn(200);
+}
+
+// helper for returning the weekends in a period
+function weekendAreas(axes) {
+    var markings = [];
+    var d = new Date(axes.xaxis.min);
+    // go to the first Saturday
+    d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 1) % 7))
+    d.setUTCSeconds(0);
+    d.setUTCMinutes(0);
+    d.setUTCHours(0);
+    var i = d.getTime();
+    do {
+        // when we don't set yaxis, the rectangle automatically
+        // extends to infinity upwards and downwards
+        markings.push({ xaxis: { from: i, to: i + 2 * 24 * 60 * 60 * 1000 } });
+        i += 7 * 24 * 60 * 60 * 1000;
+    } while (i < axes.xaxis.max);
+
+    return markings;
 }
 
 
@@ -47,17 +102,19 @@ function showGraph(container, url, attrs){
           
           opts['xaxis'] = { mode: 'time' };
           opts['selection'] = {
-              mode: "x",
+              mode: "xy",
               color: '#CCB799'
             };
           
           opts['grid'] = {
               hoverable : true,
               hoverFill: '#ff0000',
-              hoverRadius: 5
+              hoverRadius: 5,
+              markings: weekendAreas,
+              markingsColor: '#F1E3C6'
             };
           
-          opts = typeSpecificOptions(data, opts);
+          opts = typeSpecificOptions(data, opts, $(container));
           
           $.plot($(container), data['data'], opts);
           
@@ -65,8 +122,8 @@ function showGraph(container, url, attrs){
               // do the zooming
               plot = $.plot($(container), data['data'],
                             $.extend(true, {}, opts, {
-                                xaxis: { min: ranges.x1, max: ranges.x2 }//,
-                                // yaxis: { min: ranges.y1, max: ranges.y2 }
+                                xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
+                                yaxis: { min: ranges.yaxis.from, max: ranges.yaxis.to }
                             }));
           });
         });
