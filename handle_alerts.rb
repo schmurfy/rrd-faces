@@ -72,7 +72,7 @@ class Notification
   
   FLOAT_VALUES = [:value, :warn_min, :warn_max, :failure_min, :failure_max].freeze
   
-  attr_accessor :severity, :time, :host, :plugin, :type, :type_instance, :datasource, :value,
+  attr_accessor :severity, :time, :host, :plugin, :plugin_instance, :type, :type_instance, :datasource, :value,
     :warn_min, :warn_max, :failure_min, :failure_max, :message
   
   def initialize(md)
@@ -114,13 +114,15 @@ Time: (?<time>[0-9]+)\n\
   end
   
   def receive_data(data)
-    puts "DATA: #{data}"
+    # puts "DATA: #{data}"
     if ev = parse(data)
       Config::logger.debug("[#{ev.time.strftime('%H:%m:%S')} - #{ev.host}] #{ev.severity} ")
-      send_email("#{ev.host} - #{ev.plugin}:#{ev.type}:#{ev.type_instance} - #{ev.severity}", %{\
+      send_email("[$$$] #{ev.host} - #{ev.plugin}:#{ev.type}:#{ev.type_instance} - #{ev.severity}", %{\
         Current Value: #{ev.value}
         Warning thresholds: #{ev.warn_min} - #{ev.warn_max}
         Failure thresholds: #{ev.failure_min} - #{ev.failure_max}
+        
+        Message: #{ev.message}
       })
     end
   end
