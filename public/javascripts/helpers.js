@@ -49,16 +49,6 @@ function format_speed(speed){
     case 3 : return format_number(result[0], 2) + " Go/s"; break;
     default : return format_number(result[0], 2) + " To/s"; break;
   }
-  
-  // speed= parseInt(speed);
-  // if ( speed == 0 ){ return '0'; }
-  // else if( speed < Math.pow(1024, 1) ){    return format_number(speed + 0.0, 0) + " o/s"; }
-  // else if( speed < Math.pow(1024, 2) ){ return format_number(speed/Math.pow(1024, 1), 2) + " Ko/s"; }
-  // else if( speed < Math.pow(1024, 3) ){   return format_number(speed/Math.pow(1024, 2), 2) + " Mo/s"; }
-  // else if( speed < Math.pow(1024, 4) ){ return format_number(speed/Math.pow(1024, 3), 2) + " Go/s"; }
-  // else{
-  //   return speed.toString();
-  // }
 }
 
 
@@ -99,17 +89,6 @@ function format_size(size){
     case 3 : return format_number(result[0], 2) + " Go"; break;
     case 4 : return format_number(result[0], 2) + " To"; break;
   }
-  
-  // size= parseInt(size);
-  // if( size == 0 ){ return '0'; }
-  // else if( size < Math.pow(1024, 1) ){     return format_number(size, 0) + " Octets"; }
-  // else if( size < Math.pow(1024, 2) ){  return format_number(size/Math.pow(1024, 1), 0) + " Ko"; }
-  // else if( size < Math.pow(1024, 3) ){  return format_number(size/Math.pow(1024, 2), 1) + " Mo"; }
-  // else if( size < Math.pow(1024, 4) ){  return format_number(size/Math.pow(1024, 3), 2) + " Go"; }
-  // else if( size < Math.pow(1024, 5) ){  return format_number(size/Math.pow(1024, 4), 2) + " To"; }
-  // else{
-  //   return size;
-  // }
 }
 
 
