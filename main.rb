@@ -13,6 +13,36 @@ end
 
 Bundler.require
 
+
+# temporary hack to use rrdcahced unix socket
+class Errand
+  def fetch(opts={})
+    start  = (opts[:start] || Time.now.to_i - 3600).to_s
+    finish = (opts[:finish] || Time.now.to_i).to_s
+    function = opts[:function] ? opts[:function].to_s.upcase : "AVERAGE"
+
+    args = [@filename, "--start", start, "--end", finish, function, "--daemon", "unix:/tmp/rrdcached.sock"]
+
+    data = @backend.fetch(*args)
+    start  = data[0]
+    finish = data[1]
+    labels = data[2]
+    values = data[3]
+    points = {}
+
+    # compose a saner representation of the data
+    labels.each_with_index do |label, index|
+      points[label] = []
+      values.each do |tuple|
+        value = tuple[index].nan? ? nil : tuple[index]
+        points[label] << value
+      end
+    end
+
+    {:start => start, :finish => finish, :data => points}
+  end
+end
+
 require File.join(__DIR__, 'lib/config_loader')
 require File.join(__DIR__, 'config/config')
 
