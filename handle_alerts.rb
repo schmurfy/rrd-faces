@@ -117,7 +117,7 @@ Time: (?<time>[0-9]+)\n\
     # puts "DATA: #{data}"
     if ev = parse(data)
       Config::logger.debug("[#{ev.time.strftime('%H:%m:%S')} - #{ev.host}] #{ev.severity} ")
-      send_email("[$$$] #{ev.host} - #{ev.plugin}:#{ev.type}:#{ev.type_instance} - #{ev.severity}", %{\
+      send_email("[%%%] #{ev.host} - #{ev.plugin}:#{ev.type}:#{ev.type_instance} - #{ev.severity}", %{\
         Current Value: #{ev.value}
         Warning thresholds: #{ev.warn_min} - #{ev.warn_max}
         Failure thresholds: #{ev.failure_min} - #{ev.failure_max}
