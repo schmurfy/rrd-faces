@@ -112,6 +112,15 @@ function format_size(size){
   // }
 }
 
+
+function format_ping(t){
+  return format_number(t, 2) + "ms"
+}
+
+
+
+
+
 function format_duration(t){
   t= parseInt(t);
   days= hours= minutes= seconds= 0;

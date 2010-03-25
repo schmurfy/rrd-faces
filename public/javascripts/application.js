@@ -51,6 +51,10 @@ function typeSpecificOptions(data, opts, container){
           tickFormatter : function(v, axis){ console.log(axis); return format_size( find_nearest_size(v) ); }
         }
       break;
+    
+    case 'ping':
+      container.bind("plothover", function (event, pos, item) { tooltip(event, pos, item, format_ping); });
+      break;
   }
   
   return opts;
