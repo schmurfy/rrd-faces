@@ -115,7 +115,7 @@ module GraphDrawer
           points = rrd_data[:data][ds_name]
           
           increment = (js_end - js_start) / points.size
-          global_properties[:data] = points.map.with_index do |y, n|
+          global_properties[:data] = points[0...-1].map.with_index do |y, n|
             t = js_start + increment*n + 3600000
             [t, y]
           end
