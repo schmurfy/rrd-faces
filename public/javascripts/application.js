@@ -139,7 +139,10 @@ function showGraph(container, url, attrs){
 $(document).ready(function(){
   $('.graph').each(function(n, el){
       var interval = $(el).find('select').val();
-      showGraph($(el).find('.canvas'), '/data/' + $(el).data('host') + '/' + $(el).data('name'), {interval: interval});
+      var delay = $(el).data('delay') || 0;
+      setTimeout(function(){
+        showGraph($(el).find('.canvas'), '/data/' + $(el).data('host') + '/' + $(el).data('name'), {interval: interval});
+      }, delay);
     });
   
   $('.graph select').change(function(){
