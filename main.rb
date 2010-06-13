@@ -6,10 +6,10 @@ require 'rubygems'
 require 'bundler'
 Bundler.require
 
-
 # temporary hack to use rrdcahced unix socket
-class Errand
-  def fetch(opts={})
+def enable_rrdcacached
+  Errand.send(:undef_method, :fetch)
+  Errand.send(:define_method, :fetch) do |opts = {}|
     start  = (opts[:start] || Time.now.to_i - 3600).to_s
     finish = (opts[:finish] || Time.now.to_i).to_s
     function = opts[:function] ? opts[:function].to_s.upcase : "AVERAGE"
