@@ -132,7 +132,9 @@ function showGraph(container, url, attrs){
           
           opts = typeSpecificOptions(data, opts, $(container));
           
-          $.plot($(container), data['data'], opts);
+          $.plot($(container), data['data'], $.extend(true, {}, opts, {
+            xaxis: {max: (new Date).getTime() - 60000}
+          }));
           
           $(container).bind("plotselected", function (event, ranges) {
               // do the zooming
