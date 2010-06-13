@@ -24,14 +24,14 @@ module GraphDrawer
   
     def draw_line(rrd_path, ds_name, options = {})
       options.merge!({:rrd_path => rrd_path, :ds_name => ds_name})
-      serie = LineGraphSerie.new(options, options.delete(:base))
+      serie = LineGraphSerie.new(options)
       @series << serie
       serie
     end
     
     def draw_bar(rrd_path, ds_name, options = {})
       options.merge!({:rrd_path => rrd_path, :ds_name => ds_name})
-      serie = BarGraphSerie.new(options, options.delete(:base))
+      serie = BarGraphSerie.new(options)
       @series << serie
       serie
     end
@@ -58,8 +58,7 @@ module GraphDrawer
       @@ignored_properties = [:'@rrd_path', :'@ds_name']
       attr_accessor :color, :label, :rrd_path, :ds_name, :yaxis
     
-      def initialize(attributes, base = nil)
-        @base = base
+      def initialize(attributes)
         @yaxis = 1
         _load_data(attributes)
       end
@@ -101,14 +100,6 @@ module GraphDrawer
         js_end = 1000 * to
 
         data = []
-        
-        # load base data if any given
-        if @base
-          rrd_base = Errand.new(:filename => File.join(GraphDrawer::rrd_base_folder, machine, @base[0]))
-          rrd_base_data = rrd_base.fetch(:function => 'AVERAGE', :start => from, :end => to)[:data][@base[1]]
-        else
-          rrd_base_data = proc{ nil }
-        end
 
         rrd = Errand.new(:filename => File.join(GraphDrawer::rrd_base_folder, machine, self.rrd_path))
         rrd_data = rrd.fetch(:function => 'AVERAGE', :start => from, :end => to)
