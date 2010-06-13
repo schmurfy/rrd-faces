@@ -3,3 +3,5 @@ config/alerts_conf.yml
 gems/
 data
 public/javascripts/flot/
+vendor/cache/
+.bundle/
