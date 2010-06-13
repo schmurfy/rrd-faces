@@ -71,6 +71,17 @@ div.legend {
   float: right;
 }
 
+.button {
+  border: 1px solid black;
+  padding: 3px 10px;
+  background-color: #eee;
+  cursor: pointer;
+}
+
+div.top_bar {
+  display: block;
+}
+
 h1, h2, h3, h4, h5 {
   font-family: Bitstream Vera Sans, Helvetica Neue, sans-serif;
 }
