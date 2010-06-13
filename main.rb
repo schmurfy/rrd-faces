@@ -90,11 +90,9 @@ get '/data/:host/:view' do
   view = params[:view].to_sym
   host = params[:host].to_sym
   interval = params[:interval].to_i
+  index = params[:index].to_i
   
   graph = GraphDrawer::view.default[view] || GraphDrawer::view.machines[host][view]
-  Yajl::Encoder.new.encode(graph.to_hash(host, interval))
+  Yajl::Encoder.new.encode(graph.to_hash(host, interval, index))
 end
-
-
-
 

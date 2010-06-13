@@ -1,6 +1,15 @@
 
 var previousPoint = null;
 
+function pad(num){
+  if( num < 10 ){
+    return '0' + num;
+  }
+  else {
+    return num;
+  }
+}
+
 function tooltip(event, pos, item, formatter) {
       if (item) {
           if( !previousPoint || (
@@ -10,8 +19,9 @@ function tooltip(event, pos, item, formatter) {
 
               $("#tooltip").remove();
               var y = item.datapoint[1];
-
-              showTooltip(item.pageX, item.pageY, formatter(y));
+              var item_date = new Date(item.datapoint[0]);
+              var date_str = pad(item_date.getHours()) + ":" + pad(item_date.getMinutes());
+              showTooltip(item.pageX, item.pageY, formatter(y) + '<br/>' + date_str);
           }
       }
       else {
@@ -33,12 +43,10 @@ function typeSpecificOptions(data, opts, container){
   
   var max_y = Math.max.apply(Math, ydata);
   
-  // TODO: compute x ticks on rounded values
-  
   switch(data['type']){
     case 'speed':
       container.bind("plothover", function (event, pos, item) { tooltip(event, pos, item, format_speed); });
-      opts['yaxis'] = {
+      opts['yaxis'] = opts['y2axis'] = {
           ticks : 5,
           tickFormatter : function(v, axis){ console.log(axis); return format_speed( find_nearest_speed(v)); }
         }
@@ -46,7 +54,7 @@ function typeSpecificOptions(data, opts, container){
     
     case 'size':
       container.bind("plothover", function (event, pos, item) { tooltip(event, pos, item, format_size); });
-      opts['yaxis'] = {
+      opts['yaxis'] = opts['y2axis'] = {
           ticks : 5,
           tickFormatter : function(v, axis){ console.log(axis); return format_size( find_nearest_size(v) ); }
         }
@@ -98,6 +106,10 @@ function weekendAreas(axes) {
 function showGraph(container, url, attrs){
   var attrs = attrs || {};
   
+  // attrs:
+  // - interval : time interval watched
+  // - index : 0 = now, -1 = interval before current, ...
+  
   $(document).ready(function() {
       $.getJSON(url, attrs, function(data){
           var opts = data['options'];
@@ -127,7 +139,8 @@ function showGraph(container, url, attrs){
               plot = $.plot($(container), data['data'],
                             $.extend(true, {}, opts, {
                                 xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
-                                yaxis: { min: ranges.yaxis.from, max: ranges.yaxis.to }
+                                yaxis: { min: ranges.yaxis.from, max: ranges.yaxis.to },
+                                y2axis: { min: ranges.y2axis.from, max: ranges.y2axis.to }
                             }));
           });
         });
@@ -140,8 +153,12 @@ $(document).ready(function(){
   $('.graph').each(function(n, el){
       var interval = $(el).find('select').val();
       var delay = $(el).data('delay') || 0;
+      
       setTimeout(function(){
-        showGraph($(el).find('.canvas'), '/data/' + $(el).data('host') + '/' + $(el).data('name'), {interval: interval});
+        showGraph($(el).find('.canvas'), '/data/' + $(el).data('host') + '/' + $(el).data('name'), {
+            interval: interval,
+            index: 0
+          });
       }, delay);
     });
   
@@ -152,15 +169,47 @@ $(document).ready(function(){
     showGraph($(el).find('.canvas'), '/data/' + $(el).data('host') + '/' + $(el).data('name'), {interval: interval});
   });
   
+  var live_update_timers = {};
+  
   $('.graph .live_update').click(function(){
-    if( $(this).val() ){
+    var id = $(this).data('data-id');
+    
+    if( this.checked ){
       var s = $(this).closest('.graph').find('select');
       
-      setInterval(
+      live_update_timers[id] = setInterval(
           function(){ s.trigger('change'); },
           10000
         );
     }
+    else {
+      clearInterval( live_update_timers[id] );
+      live_update_timers[id] = null;
+    }
+  });
+  
+  $('a.reset').click(function(){
+    var el = $(this).closest('.graph');
+    var interval = $(el).find('select').val();
+    showGraph($(el).find('.canvas'), '/data/' + $(el).data('host') + '/' + $(el).data('name'), {interval: interval});
+  });
+  
+  $('a.previous').click(function(){
+    var el = $(this).closest('.graph');
+    var interval = $(el).find('select').val();
+    var index = parseInt(el.attr('data-index')) + 1;
+    el.attr('data-index', index) ;
+    
+    showGraph($(el).find('.canvas'), '/data/' + $(el).data('host') + '/' + $(el).data('name'), {interval: interval, index: index});
+  });
+  
+  $('a.next').click(function(){
+    var el = $(this).closest('.graph');
+    var interval = $(el).find('select').val();
+    var index = parseInt(el.attr('data-index')) - 1;
+    el.attr('data-index', index) ;
+    
+    showGraph($(el).find('.canvas'), '/data/' + $(el).data('host') + '/' + $(el).data('name'), {interval: interval, index: index});
   });
 });
 

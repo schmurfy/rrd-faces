@@ -40,9 +40,10 @@ module GraphDrawer
       @@encoder.encode(self.to_hash)
     end
     
-    def to_hash(machine, interval = nil)
-      from ||= (Time.now - (interval || 3600)).to_i
-      to   ||= (Time.now).to_i
+    def to_hash(machine, interval, index = 0)
+      # compute from, to
+      to = Time.new.to_i - (index * interval)
+      from = to - interval
        
       {
         :data => @series.map{|s| s.to_hash(machine, from, to) },
@@ -53,12 +54,13 @@ module GraphDrawer
 
   private
     class GraphSerie
-      @@global_properties = [:'@color', :'@label']
+      @@global_properties = [:'@color', :'@label', :'@yaxis']
       @@ignored_properties = [:'@rrd_path', :'@ds_name']
-      attr_accessor :color, :label, :rrd_path, :ds_name
+      attr_accessor :color, :label, :rrd_path, :ds_name, :yaxis
     
       def initialize(attributes, base = nil)
         @base = base
+        @yaxis = 1
         _load_data(attributes)
       end
     
@@ -116,7 +118,7 @@ module GraphDrawer
           
           increment = (js_end - js_start) / points.size
           global_properties[:data] = points[0...-1].map.with_index do |y, n|
-            t = js_start + increment*n + 3600000
+            t = js_start + increment*n
             [t, y]
           end
         
