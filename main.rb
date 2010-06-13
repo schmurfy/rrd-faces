@@ -36,6 +36,10 @@ class Errand
   end
 end
 
+require File.expand_path('../lib/graph_series/base', __FILE__)
+require File.expand_path('../lib/graph_series/line', __FILE__)
+require File.expand_path('../lib/graph_series/bar', __FILE__)
+require File.join(__DIR__, 'lib/graph')
 require File.join(__DIR__, 'lib/config_loader')
 require File.join(__DIR__, 'config/config')
 
@@ -52,7 +56,7 @@ end
 
 
 get '/' do 
-  @hosts = GraphDrawer::view.machines.keys
+  @hosts = RRDFaces::view.machines.keys
   haml :index
 end
 
@@ -66,11 +70,11 @@ get '/*' do
 end
 
 get '/:host' do 
-  if GraphDrawer::view.machines[params[:host].to_sym]
-    @hosts = GraphDrawer::view.machines.keys
+  if RRDFaces::view.machines[params[:host].to_sym]
+    @hosts = RRDFaces::view.machines.keys
   
-    @graphs = GraphDrawer::view.default.values
-    @graphs << GraphDrawer::view.machines[params[:host].to_sym].values
+    @graphs = RRDFaces::view.default.values
+    @graphs << RRDFaces::view.machines[params[:host].to_sym].values
     @graphs.flatten!
   
     haml :index
@@ -85,7 +89,7 @@ get '/data/:host/:view' do
   interval = params[:interval].to_i
   index = params[:index].to_i
   
-  graph = GraphDrawer::view.default[view] || GraphDrawer::view.machines[host][view]
+  graph = RRDFaces::view.default[view] || RRDFaces::view.machines[host][view]
   Yajl::Encoder.new.encode(graph.to_hash(host, interval, index))
 end
 
