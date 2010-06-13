@@ -142,7 +142,7 @@ function showGraph(container, url, attrs){
                             $.extend(true, {}, opts, {
                                 xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
                                 yaxis: { min: ranges.yaxis.from, max: ranges.yaxis.to },
-                                y2axis: { min: ranges.y2axis.from, max: ranges.y2axis.to }
+                                y2axis: ( ranges.y2axis ) ? { min: ranges.y2axis.from, max: ranges.y2axis.to } : {}
                             }));
           });
         });
